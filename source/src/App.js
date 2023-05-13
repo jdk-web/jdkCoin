@@ -3,12 +3,14 @@ import './App.css';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useEffect, useState } from 'react';
-import { Table } from 'react-bootstrap';
+import { Table, Form, InputGroup  } from 'react-bootstrap';
+const Hangul = require('hangul-js');
 
 function App() {
   let [coin,setCoin] = useState([]);
   let [coinPrice, setCoinPrice] = useState([])
-  let [sort, setSort] = useState('-');
+  let [tmpCoin, setTmpCoin] = useState([]);
+  let [search, setSearch] = useState(false);
   
   /* GET COIN DATA */
   useEffect(()=>{
@@ -29,6 +31,9 @@ function App() {
       console.error(error);
     });
   },[]) 
+
+ // useEffect(()=>{
+ //// },[tmpCoin]);
 
   /* COIN PARAM */
   let market_param = coin.map((row,idx)=>{ return row.market });
@@ -57,6 +62,46 @@ useQuery([], ()=>
   return (
     <div className="App" style={{marginTop:'185px', marginLeft:'50px', marginRight:'50px'}}>
       <span>암호화폐 총 개수 : {coinPrice.length} 개</span> 
+      <InputGroup className="mb-3" style={{width:'250px','color':'gray'}}>
+        <Form.Control
+          placeholder='비트코인,ㅂㅌㅋㅇ'
+          aria-label="Recipient's username"
+          aria-describedby="basic-addon2"
+          style={{backgroundColor:'black', color:'white'}}
+          onChange={(el)=>{
+
+            if(search === false)
+              setTmpCoin(coinPrice);
+
+            if( el.target.value.length<1){
+              setSearch(false);
+              setCoin(tmpCoin);
+            }else{
+              setSearch(true);
+              let found = coinPrice.filter(e => {
+                /*초성 검색*/
+                let disassemble = Hangul.disassemble(e.korean_name,true);
+                let cho="";
+                for (let i=0,l=disassemble.length;i<l;i++){
+                  cho+=disassemble[i][0];
+                }
+                return (e.korean_name.includes(el.target.value)  || (cho == el.target.value))
+              }
+              );
+              if(found){
+                setCoin(found)
+              }
+              
+            }
+
+         
+          }}
+        />
+        {/* <Button variant="outline-secondary" id="button-addon2" style={{backgroundColor:'black', color:'white'}}>
+          검색
+        </Button> */}
+      </InputGroup>
+
         <Table striped bordered hover variant="dark" style={{margin:'auto'}}>
         <thead>
           <tr>
@@ -81,7 +126,7 @@ useQuery([], ()=>
                   
                 }}
               >
-                  -
+                  ➖
               </span>
 
             </th>
@@ -103,7 +148,7 @@ useQuery([], ()=>
                   }
                 }}
               >
-                  -
+                  ➖
               </span> 
             </th>
             <th>전일대비
@@ -125,7 +170,7 @@ useQuery([], ()=>
                     
                   }}
                 >
-                    -
+                    ➖
                 </span>
             </th>
             <th>고가대비(52주)</th>
@@ -164,7 +209,7 @@ useQuery([], ()=>
               </td>
               <td style={{verticalAlign:'middle'}}>{row.highest_52_week_price.toLocaleString(undefined, {maximumFractionDigits: 5})}<br/>({row.highest_52_week_date})</td>
               <td style={{verticalAlign:'middle'}}>{row.lowest_52_week_price.toLocaleString(undefined, {maximumFractionDigits: 5})}<br/>({row.lowest_52_week_date})</td> 
-              <td style={{verticalAlign:'middle'}}>{ Math.ceil( row.acc_trade_price_24h ).toLocaleString() }원</td>
+              <td style={{verticalAlign:'middle'}}>{ numberToKorean(Math.ceil( row.acc_trade_price_24h )).toLocaleString() }원</td>
             </tr>
             )
 
@@ -178,8 +223,34 @@ useQuery([], ()=>
 
 function sortInit(){
   [...document.querySelectorAll(".sort")].map((e,idx)=>{
-    e.innerText = '-'
+    e.innerText = '➖'
   });
 }
+
+function numberToKorean(number){
+  var inputNumber  = number < 0 ? false : number;
+  var unitWords    = ['', '만', '억', '조', '경'];
+  var splitUnit    = 10000;
+  var splitCount   = unitWords.length;
+  var resultArray  = [];
+  var resultString = '';
+
+  for (var i = 0; i < splitCount; i++){
+       var unitResult = (inputNumber % Math.pow(splitUnit, i + 1)) / Math.pow(splitUnit, i);
+      unitResult = Math.floor(unitResult);
+      if (unitResult > 0){
+          resultArray[i] = unitResult;
+      }
+  }
+
+  for (var i = 0; i < resultArray.length; i++){
+      if(!resultArray[i]) continue;
+      resultString = String(resultArray[i]) + unitWords[i] + resultString;
+  }
+  return resultString;
+}
+
+
+
 
 export default App;
