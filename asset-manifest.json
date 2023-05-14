@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/jdkCoin/static/css/main.756af292.css",
-    "main.js": "/jdkCoin/static/js/main.5342beb2.js",
+    "main.js": "/jdkCoin/static/js/main.c2d54341.js",
     "static/js/787.b7c52895.chunk.js": "/jdkCoin/static/js/787.b7c52895.chunk.js",
     "index.html": "/jdkCoin/index.html",
     "main.756af292.css.map": "/jdkCoin/static/css/main.756af292.css.map",
-    "main.5342beb2.js.map": "/jdkCoin/static/js/main.5342beb2.js.map",
+    "main.c2d54341.js.map": "/jdkCoin/static/js/main.c2d54341.js.map",
     "787.b7c52895.chunk.js.map": "/jdkCoin/static/js/787.b7c52895.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.756af292.css",
-    "static/js/main.5342beb2.js"
+    "static/js/main.c2d54341.js"
   ]
 }
