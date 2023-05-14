@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import './App.css';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { Table, Form, InputGroup  } from 'react-bootstrap';
 const Hangul = require('hangul-js');
 
@@ -11,6 +11,7 @@ function App() {
   let [coinPrice, setCoinPrice] = useState([])
   let [tmpCoin, setTmpCoin] = useState([]);
   let [search, setSearch] = useState(false);
+  let [isPending, startTransition] = useTransition()
   
   /* GET COIN DATA */
   useEffect(()=>{
@@ -32,32 +33,30 @@ function App() {
     });
   },[]) 
 
- // useEffect(()=>{
- //// },[tmpCoin]);
-
   /* COIN PARAM */
   let market_param = coin.map((row,idx)=>{ return row.market });
   market_param = market_param.join(",")
   
 /* GET COIN PRICE INFO */
-useQuery([], ()=>
-  axios
-  .request({
-    method: 'GET',
-    url: 'https://api.upbit.com/v1/ticker',
-    headers: {accept: 'application/json'},
-    params :{'markets':market_param}
-  })
+const getCoin = async () => {
+  let result = await axios
+  .request({method: 'GET',
+  url: 'https://api.upbit.com/v1/ticker',
+  headers: {accept: 'application/json'},
+  params :{'markets':market_param}})
   .then(function (response) {
     let data = coin.map((item, i) => Object.assign({}, item, response.data[i]));
     setCoinPrice(data);
-    return data;
+    return true;
   })
   .catch(function (error) {
-   // console.error(error);
-  }),
-  {refetchInterval:500}
-)
+    return false;
+  })
+  return result;
+};
+
+useQuery(['coin'], ()=>getCoin(),{refetchInterval:500})
+
 //🔽
   return (
     <div className="App" style={{marginTop:'185px', marginLeft:'50px', marginRight:'50px'}}>
@@ -69,37 +68,40 @@ useQuery([], ()=>
           aria-describedby="basic-addon2"
           style={{backgroundColor:'black', color:'white'}}
           onChange={(el)=>{
-
+           
             if(search === false)
               setTmpCoin(coinPrice);
 
-            if( el.target.value.length<1){
-              setSearch(false);
-              setCoin(tmpCoin);
-            }else{
-              setSearch(true);
-              let found = coinPrice.filter(e => {
-                /*초성 검색*/
-                let disassemble = Hangul.disassemble(e.korean_name,true);
-                let cho="";
-                for (let i=0,l=disassemble.length;i<l;i++){
-                  cho+=disassemble[i][0];
+            startTransition(()=>{
+              if( el.target.value.length<1){
+                setSearch(false);
+                setCoin(tmpCoin);
+              }else{
+                setSearch(true);
+                let found = tmpCoin.filter(e => {
+                  /*초성 검색*/
+                  let disassemble = Hangul.disassemble(e.korean_name,true);
+                  let cho="";
+                  for (let i=0,l=disassemble.length;i<l;i++){
+                    cho+=disassemble[i][0];
+                  }
+                  return (e.korean_name.includes(el.target.value)  || (cho.includes(el.target.value)))
                 }
-                return (e.korean_name.includes(el.target.value)  || (cho == el.target.value))
+                );
+
+                console.log(found)
+                if(found){
+                  setCoin(found)
+                }else{
+                  setCoin([])
+                }
+                
               }
-              );
-              if(found){
-                setCoin(found)
-              }
-              
-            }
+            })
 
          
           }}
         />
-        {/* <Button variant="outline-secondary" id="button-addon2" style={{backgroundColor:'black', color:'white'}}>
-          검색
-        </Button> */}
       </InputGroup>
 
         <Table striped bordered hover variant="dark" style={{margin:'auto'}}>
@@ -180,7 +182,7 @@ useQuery([], ()=>
         </thead>
         <tbody>
         { 
-        coinPrice.map((row,idx)=>{ 
+        (coinPrice.length > 0) ? coinPrice.map((row,idx)=>{ 
              
             if(row.change === 'EVEN'){
               row.change = '-';
@@ -213,8 +215,8 @@ useQuery([], ()=>
             </tr>
             )
 
-          }) 
-        }
+          })  : <tr><td colSpan={7}>데이터가 없습니다</td></tr>
+        } 
         </tbody>
       </Table>
     </div>
@@ -249,8 +251,5 @@ function numberToKorean(number){
   }
   return resultString;
 }
-
-
-
 
 export default App;
