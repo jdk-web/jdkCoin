@@ -57,7 +57,6 @@ const getCoin = async () => {
 
 useQuery(['coin'], ()=>getCoin(),{refetchInterval:500})
 
-//🔽
   return (
     <div className="App" style={{marginTop:'185px', marginLeft:'50px', marginRight:'50px'}}>
       <span>암호화폐 총 개수 : {coinPrice.length} 개</span> 
@@ -209,8 +208,14 @@ useQuery(['coin'], ()=>getCoin(),{refetchInterval:500})
                   ({row.signed_change_price.toLocaleString(undefined, {maximumFractionDigits: 5})}원)
                 </div>
               </td>
-              <td style={{verticalAlign:'middle'}}>{row.highest_52_week_price.toLocaleString(undefined, {maximumFractionDigits: 5})}<br/>({row.highest_52_week_date})</td>
-              <td style={{verticalAlign:'middle'}}>{row.lowest_52_week_price.toLocaleString(undefined, {maximumFractionDigits: 5})}<br/>({row.lowest_52_week_date})</td> 
+              <td style={{verticalAlign:'middle', 'color':'red'}}>
+                {((row.trade_price-row.highest_52_week_price)/row.highest_52_week_price*100).toLocaleString(undefined, {maximumFractionDigits: 2})}%<br/>
+                <div style={{color:'gray'}}>{row.highest_52_week_price.toLocaleString(undefined, {maximumFractionDigits: 5})}({row.highest_52_week_date})</div>
+              </td>
+              <td style={{verticalAlign:'middle', 'color':'lightseagreen'}}>
+              +{((row.trade_price-row.lowest_52_week_price)/row.lowest_52_week_price*100).toLocaleString(undefined, {maximumFractionDigits: 2})}%<br/>
+                <div style={{color:'gray'}}>{row.lowest_52_week_price.toLocaleString(undefined, {maximumFractionDigits: 5})}({row.lowest_52_week_date})</div>
+              </td> 
               <td style={{verticalAlign:'middle'}}>{ numberToKorean(Math.ceil( row.acc_trade_price_24h )).toLocaleString() }원</td>
             </tr>
             )
